@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 会议室占用Mapper XML映射文件 -->
+<mapper namespace="com.meeting.mapper.MeetingRoomUsageMapper"><!-- 绑定到MeetingRoomUsageMapper接口 -->
+
+    <!-- 检测指定会议室在指定时段的时间冲突 -->
+    <select id="countConflict" resultType="int"><!-- 方法名对应MeetingRoomUsageMapper.countConflict，返回int类型 -->
+        SELECT COUNT(*) FROM meeting_room_usage u <!-- 查询占用表 -->
+        WHERE meeting_room_id = #{meetingRoomId} <!-- 会议室ID匹配 -->
+        AND start_time &lt; #{endTime} <!-- 已有记录的开始时间 < 新时段的结束时间（时间范围重叠条件1） -->
+        AND end_time &gt; #{startTime} <!-- 已有记录的结束时间 > 新时段的开始时间（时间范围重叠条件2） -->
+        <if test="excludeMeetingId != null"><!-- 动态SQL：排除指定会议 -->
+            AND meeting_id != #{excludeMeetingId} <!-- 更新会议时排除自身 -->
+        </if>
+        AND deleted = 0 <!-- 过滤逻辑删除记录 -->
+    </select>
+
+    <!-- 按会议ID删除所有占用记录 -->
+    <delete id="deleteByMeetingId"><!-- 方法名对应MeetingRoomUsageMapper.deleteByMeetingId -->
+        DELETE FROM meeting_room_usage WHERE meeting_id = #{meetingId} <!-- 物理删除指定会议的所有占用 -->
+    </delete>
+
+</mapper>

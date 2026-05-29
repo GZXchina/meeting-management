@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 会议Mapper XML映射文件 -->
+<mapper namespace="com.meeting.mapper.MeetingMapper"><!-- 绑定到MeetingMapper接口 -->
+
+    <!-- 会议查询结果映射 -->
+    <resultMap id="MeetingResultMap" type="com.meeting.entity.Meeting"><!-- 结果映射，type=实体类全路径 -->
+        <id column="id" property="id"/><!-- 主键映射 -->
+        <result column="meeting_code" property="meetingCode"/><!-- 列名变更为驼峰 -->
+        <result column="title" property="title"/>
+        <result column="department" property="department"/>
+        <result column="organizer" property="organizer"/>
+        <result column="meeting_room_id" property="meetingRoomId"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="max_participants" property="maxParticipants"/>
+        <result column="status" property="status"/>
+        <result column="description" property="description"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <!-- 分页查询会议列表（多条件动态SQL） -->
+    <select id="selectMeetingPage" resultMap="MeetingResultMap"><!-- 方法名对应MeetingMapper.selectMeetingPage -->
+        SELECT m.* FROM meeting m <!-- 查询会议表所有字段 -->
+        WHERE m.deleted = 0 <!-- 只查询未逻辑删除的记录 -->
+        <if test="meetingCode != null and meetingCode != ''"><!-- 动态SQL：会议编号不为空 -->
+            AND m.meeting_code LIKE CONCAT('%', #{meetingCode}, '%') <!-- 模糊匹配会议编号 -->
+        </if>
+        <if test="title != null and title != ''"><!-- 动态SQL：标题不为空 -->
+            AND m.title LIKE CONCAT('%', #{title}, '%') <!-- 模糊匹配标题 -->
+        </if>
+        <if test="department != null and department != ''"><!-- 动态SQL：部门不为空 -->
+            AND m.department LIKE CONCAT('%', #{department}, '%') <!-- 模糊匹配部门 -->
+        </if>
+        <if test="status != null"><!-- 动态SQL：状态不为空（Integer类型） -->
+            AND m.status = #{status} <!-- 精确匹配状态 -->
+        </if>
+        <if test="startTimeFrom != null"><!-- 动态SQL：开始时间下限 -->
+            AND m.start_time &gt;= #{startTimeFrom} <!-- >= 开始时间下限 -->
+        </if>
+        <if test="startTimeTo != null"><!-- 动态SQL：开始时间上限 -->
+            AND m.start_time &lt;= #{startTimeTo} <!-- <= 开始时间上限 -->
+        </if>
+        ORDER BY m.created_at DESC <!-- 按创建时间降序排列，最新在前 -->
+    </select>
+
+    <!-- 级联删除会议（物理删除，不走MyBatisPlus逻辑删除） -->
+    <delete id="deleteMeetingCascade"><!-- 方法名对应MeetingMapper.deleteMeetingCascade -->
+        DELETE FROM meeting WHERE id = #{id} <!-- 物理删除指定ID的会议 -->
+    </delete>
+
+</mapper>

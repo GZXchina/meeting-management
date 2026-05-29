@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 参会人员Mapper XML映射文件 -->
+<mapper namespace="com.meeting.mapper.ParticipantMapper"><!-- 绑定到ParticipantMapper接口 -->
+
+    <!-- 参会人员查询结果映射 -->
+    <resultMap id="ParticipantResultMap" type="com.meeting.entity.Participant"><!-- 结果映射 -->
+        <id column="id" property="id"/><!-- 主键 -->
+        <result column="user_id" property="userId"/><!-- 用户ID（工号） -->
+        <result column="name" property="name"/><!-- 姓名 -->
+        <result column="department" property="department"/><!-- 部门 -->
+        <result column="meeting_id" property="meetingId"/><!-- 关联的会议ID -->
+        <result column="status" property="status"/><!-- 参会状态 -->
+        <result column="created_at" property="createdAt"/><!-- 创建时间 -->
+        <result column="updated_at" property="updatedAt"/><!-- 更新时间 -->
+        <result column="deleted" property="deleted"/><!-- 逻辑删除标记 -->
+    </resultMap>
+
+    <!-- 分页查询参会人员列表（多条件动态SQL） -->
+    <select id="selectParticipantPage" resultMap="ParticipantResultMap"><!-- 方法名对应ParticipantMapper -->
+        SELECT p.* FROM participant p <!-- 查询参会人员表 -->
+        WHERE p.deleted = 0 <!-- 过滤逻辑删除 -->
+        <if test="userId != null and userId != ''"><!-- 动态SQL：用户ID不为空 -->
+            AND p.user_id LIKE CONCAT('%', #{userId}, '%') <!-- 模糊搜索用户ID -->
+        </if>
+        <if test="name != null and name != ''"><!-- 动态SQL：姓名不为空 -->
+            AND p.name LIKE CONCAT('%', #{name}, '%') <!-- 模糊搜索姓名 -->
+        </if>
+        <if test="department != null and department != ''"><!-- 动态SQL：部门不为空 -->
+            AND p.department LIKE CONCAT('%', #{department}, '%') <!-- 模糊搜索部门 -->
+        </if>
+        <if test="meetingId != null"><!-- 动态SQL：会议ID不为空 -->
+            AND p.meeting_id = #{meetingId} <!-- 精确匹配会议ID -->
+        </if>
+        <if test="status != null"><!-- 动态SQL：状态不为空 -->
+            AND p.status = #{status} <!-- 精确匹配状态 -->
+        </if>
+        ORDER BY p.created_at DESC <!-- 按创建时间降序 -->
+    </select>
+
+    <!-- 按会议ID和状态统计参会人数 -->
+    <select id="countByMeetingIdAndStatus" resultType="int"><!-- 方法名对应ParticipantMapper，返回int -->
+        SELECT COUNT(*) FROM participant <!-- 查询参会人员表 -->
+        WHERE meeting_id = #{meetingId} <!-- 会议ID匹配 -->
+        AND status = #{status} <!-- 状态匹配 -->
+        AND deleted = 0 <!-- 过滤逻辑删除 -->
+    </select>
+
+</mapper>

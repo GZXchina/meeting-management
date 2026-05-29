@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 会议室Mapper XML映射文件 -->
+<mapper namespace="com.meeting.mapper.MeetingRoomMapper"><!-- 绑定到MeetingRoomMapper接口 -->
+
+    <!-- 会议室查询结果映射 -->
+    <resultMap id="RoomResultMap" type="com.meeting.entity.MeetingRoom"><!-- 结果映射 -->
+        <id column="id" property="id"/><!-- 主键 -->
+        <result column="room_code" property="roomCode"/><!-- 会议室编号 -->
+        <result column="room_name" property="roomName"/><!-- 会议室名称 -->
+        <result column="capacity" property="capacity"/><!-- 容纳人数 -->
+        <result column="location" property="location"/><!-- 所在位置 -->
+        <result column="equipment" property="equipment"/><!-- 配备设备 -->
+        <result column="status" property="status"/><!-- 使用状态 -->
+        <result column="description" property="description"/><!-- 描述 -->
+        <result column="created_at" property="createdAt"/><!-- 创建时间 -->
+        <result column="updated_at" property="updatedAt"/><!-- 更新时间 -->
+        <result column="deleted" property="deleted"/><!-- 逻辑删除标记 -->
+    </resultMap>
+
+    <!-- 分页查询会议室列表（多条件动态SQL） -->
+    <select id="selectRoomPage" resultMap="RoomResultMap"><!-- 方法名对应MeetingRoomMapper.selectRoomPage -->
+        SELECT r.* FROM meeting_room r <!-- 查询会议室表 -->
+        WHERE r.deleted = 0 <!-- 过滤逻辑删除记录 -->
+        <if test="roomCode != null and roomCode != ''"><!-- 动态SQL：编号不为空 -->
+            AND r.room_code LIKE CONCAT('%', #{roomCode}, '%') <!-- 模糊搜索编号 -->
+        </if>
+        <if test="roomName != null and roomName != ''"><!-- 动态SQL：名称不为空 -->
+            AND r.room_name LIKE CONCAT('%', #{roomName}, '%') <!-- 模糊搜索名称 -->
+        </if>
+        <if test="status != null"><!-- 动态SQL：状态不为空 -->
+            AND r.status = #{status} <!-- 精确匹配状态 -->
+        </if>
+        ORDER BY r.room_code ASC <!-- 按编号升序 -->
+    </select>
+
+</mapper>
